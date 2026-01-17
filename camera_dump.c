@@ -443,4 +443,95 @@ int main(int argc, char *argv[])
     }
 
     return 0;
+
+    
+static int start_preview(void* handle, camera_preview_params_t* params,
+                         camera_buffer_list_t* buflist)
+{
+    externalCameraContext_t* ctx = (externalCameraContext_t*) handle;
+
+    if ((handle == NULL) || (params == NULL)) {
+        return EINVAL;
+    }
+
+    if (ctx->mPreviewActive == true) {
+        LOG_ERROR("Preview already started");
+        return CAMERA_EALREADY;
+    }
+
+    ctx->mPreviewActive = true;
+    ctx->frameCnt = 0;
+    memcpy(&ctx->mPreviewParams, params, sizeof(camera_preview_params_t));
+
+    return EOK;
+}
+static void* open_external_camera(uint32_t input)
+{
+    externalCameraContext_t *ctx = NULL;
+
+    // Init the library if not done yet
+    pthread_once(&cameraLibInit, initCameraLibrary);
+
+    ctx = (externalCameraContext_t*) calloc(1, sizeof(externalCameraContext_t));
+    return (void*)ctx;
+}
+static int intruder_detected(void* handle, void* bufferIn, camera_preview_frame_flags_t *flags,
+                             void** bufferOut, int64_t *timestamp, void* metaOut,
+                             uint64_t *metaSize)
+{
+    int posx, bar_width, bar, bar_cnt, height, width, stride;
+    int y, i;
+    uint8_t *buf;
+    uint64_t timeStart, timeEnd;
+    int64_t timeDiff, framePeriod;
+    camera_frametype_t frametype;
+    externalCameraContext_t* ctx = (externalCameraContext_t*) handle;
+
+    if ((handle == NULL) || (bufferIn == NULL) || (flags == NULL)){
+        return EINVAL;
+    }
+
+    // Free input buffer if an error is encountered
+    flags->freeInputBuffer = true;
+
+    // Writing color bars is skipped, but in a real camera driver, get_preview_frame would acquire a frame from a camera
+    // If bufferIn is not consumed by the camera, leave flags->captured to be false and return to indicate that bufferIn
+    // is queued.
+
+    flags->captured = true;
+    *metaSize = 0;
+    if (bufferOut) {
+        flags->freeInputBuffer = false;
+        *bufferOut = bufferIn;
+    }
+
+    // Before returning, wait based on program frame rate + how long it took to build the frame
+    ClockTime(CLOCK_MONOTONIC, NULL, &timeEnd);
+    timeDiff = (timeEnd - timeStart) / 1000;
+    framePeriod = 1000000 / (ctx->mPreviewParams.framerate_q16 >> 16);
+    if (timeDiff < framePeriod) {
+        timeDiff = framePeriod - timeDiff;
+    } else {
+        timeDiff = 1;
+    }
+    usleep(timeDiff);
+
+    if (timestamp) {
+        *timestamp = get_time(handle);
+    }
+
+    return EOK;
+}
+
+static int stop_preview(void* handle)
+{
+    externalCameraContext_t* ctx = (externalCameraContext_t*) handle;
+
+    if (handle == NULL) {
+        return EINVAL;
+    }
+
+    ctx->mPreviewActive = false;
+    return EOK;
+}
 }
