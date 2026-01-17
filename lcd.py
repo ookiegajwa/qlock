@@ -128,8 +128,12 @@ def update_status():
     else:
         line1 = "ALARM"
         line2 = "In: "
+        zones = []
         for sensor in homesecurity.alarm:
-            line2 += str(sensor) + "; "
+            zones.append(sensor.zone)
+        zones.sort()
+        for zone in zones:
+            line2 += str(zone) + "; "
 
     lcd_string(line1, LCD_LINE_1)
 
