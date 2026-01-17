@@ -110,7 +110,8 @@ def update_status():
     tripped_sensors = []
     for sensor in homesecurity.sensors:
         if sensor.tripped:
-            tripped_sensors.add(sensor)
+            tripped_sensors.append(sensor.zone)
+    tripped_sensors.sort()
 
     if homesecurity.state == 0:
         if len(tripped_sensors) == 0:
@@ -120,7 +121,7 @@ def update_status():
             line1 = "Not ready"
             line2 = "Fault: "
             for sensor in tripped_sensors:
-                line2 += str(sensor.zone) + "; "
+                line2 += str(sensor) + "; "
     elif homesecurity.state == 1:
         line1 = "Armed"
         line2 = "Secure"
@@ -128,7 +129,7 @@ def update_status():
         line1 = "ALARM"
         line2 = "In: "
         for sensor in homesecurity.alarm:
-            line2 += str(sensor.zone) + "; "
+            line2 += str(sensor) + "; "
 
     lcd_string(line1, LCD_LINE_1)
 
