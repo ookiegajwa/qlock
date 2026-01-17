@@ -14,5 +14,3 @@ def buttonPressed(channel):
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.add_event_detect(BUTTON_PIN, GPIO.BOTH, callback=buttonPressed, bouncetime=300)
 
-while True: 
-    time.sleep(1)
