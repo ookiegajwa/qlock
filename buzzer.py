@@ -24,3 +24,8 @@ class Buzzer(homesecurity.SimpleOutput):
 
     def on_alarm(self):
         GPIO.output(self.pin, GPIO.HIGH)
+
+    def on_trip(self, sensor):
+        GPIO.output(self.pin, GPIO.HIGH)
+        time.sleep(0.01)
+        GPIO.output(self.pin, GPIO.LOW)

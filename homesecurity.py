@@ -28,10 +28,10 @@ class SimpleOutput:
     def on_alarm(self):
         pass
 
-    def on_trip(self):
+    def on_trip(self, sensor):
         pass
 
-    def on_clear(self):
+    def on_clear(self, sensor):
         pass
 
 def trip(sensor: Sensor):
