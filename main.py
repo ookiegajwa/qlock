@@ -7,9 +7,9 @@ lcd.lcd_init()
 button.setup()
 motion.setup()
 arm_toggle.setup()
-homesecurity.outputs.append(lcd)
-homesecurity.outputs.append(led)
-homesecurity.outputs.append(buzzer.Buzzer(4))
+homesecurity.outputs.add(lcd)
+homesecurity.outputs.add(led)
+homesecurity.outputs.add(buzzer.Buzzer(4))
 
 while True:
     lcd.update_status()

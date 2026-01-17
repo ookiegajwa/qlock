@@ -110,7 +110,7 @@ def update_status():
     tripped_sensors = []
     for sensor in homesecurity.sensors:
         if sensor.tripped:
-            tripped_sensors.append(sensor)
+            tripped_sensors.add(sensor)
 
     if homesecurity.state == 0:
         if len(tripped_sensors) == 0:

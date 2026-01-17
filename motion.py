@@ -5,7 +5,7 @@ MOTION_PIN = 18
 my_sensor = hs.Sensor(zone=2)
 
 def setup():
-    hs.sensors.append(my_sensor)
+    hs.sensors.add(my_sensor)
     GPIO.setup(MOTION_PIN, GPIO.IN)
     GPIO.add_event_detect(MOTION_PIN, GPIO.BOTH, callback=buttonPressed)
 

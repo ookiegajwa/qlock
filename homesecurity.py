@@ -1,9 +1,9 @@
 # Store system state
 state = 0  # 0=disarmed, 1=armed, 2=alarm
-sensors = []
-alarm = []
-access_controls = []
-outputs = []
+sensors = set()
+alarm = set()
+access_controls = set()
+outputs = set()
 
 
 # Classes for input/output events
@@ -42,7 +42,7 @@ def trip(sensor: Sensor):
         for output in outputs:
             output.on_alarm()
     if state != 0:
-        alarm.append(sensor)
+        alarm.add(sensor)
     sensor.tripped = True
     for output in outputs:
         output.on_trip(sensor)
