@@ -1,5 +1,5 @@
 import time
-import homesecurity, lcd
+import homesecurity, lcd, status_led
 
 lcd.lcd_init()
 
