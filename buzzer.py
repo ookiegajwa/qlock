@@ -10,7 +10,8 @@ class Buzzer(homesecurity.SimpleOutput):
     def on_arm(self):
         GPIO.output(self.pin, GPIO.HIGH)
         time.sleep(0.2)
-        GPIO.output(self.pin, GPIO.LOW)
+        if homesecurity.state != 2:
+            GPIO.output(self.pin, GPIO.LOW)
 
     def on_disarm(self):
         GPIO.output(self.pin, GPIO.HIGH)
@@ -19,8 +20,8 @@ class Buzzer(homesecurity.SimpleOutput):
         time.sleep(0.15)
         GPIO.output(self.pin, GPIO.HIGH)
         time.sleep(0.15)
-        GPIO.output(self.pin, GPIO.LOW)
-        time.sleep(0.15)
+        if homesecurity.state != 2:
+            GPIO.output(self.pin, GPIO.LOW)
 
     def on_alarm(self):
         GPIO.output(self.pin, GPIO.HIGH)
@@ -28,4 +29,5 @@ class Buzzer(homesecurity.SimpleOutput):
     def on_trip(self, sensor):
         GPIO.output(self.pin, GPIO.HIGH)
         time.sleep(0.01)
-        GPIO.output(self.pin, GPIO.LOW)
+        if homesecurity.state != 2:
+            GPIO.output(self.pin, GPIO.LOW)
