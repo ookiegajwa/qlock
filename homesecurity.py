@@ -1,6 +1,7 @@
 # Store system state
 state = 0  # 0=disarmed, 1=armed, 2=alarm
 sensors = []
+alarm = []
 access_controls = []
 outputs = []
 
@@ -9,6 +10,7 @@ outputs = []
 class Sensor:
     def __init__(self, zone: int):
         self.zone = zone
+        self.tripped = False
 
 
 class AccessControl:
@@ -17,9 +19,6 @@ class AccessControl:
 
 
 class SimpleOutput:
-    def __init__(self):
-        pass
-
     def on_arm(self):
         pass
 
@@ -36,7 +35,13 @@ def trip(sensor: Sensor):
         state = 2
         for output in outputs:
             output.on_alarm()
+    if state != 0:
+        alarm.append(sensor)
+    sensor.tripped = True
 
+def clear(sensor: Sensor):
+    """Callback called when a sensor clears"""
+    sensor.tripped = False
 
 
 def toggle_arm(source: AccessControl):
@@ -50,3 +55,4 @@ def toggle_arm(source: AccessControl):
         state = 0
         for output in outputs:
             output.on_disarm()
+        alarm.clear()
