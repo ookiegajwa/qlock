@@ -54,14 +54,17 @@ def clear(sensor: Sensor):
         output.on_clear(sensor)
 
 
-def toggle_arm(source: AccessControl):
+def toggle_arm():
     """Callback for when an access control device is authorized"""
+    print("sus")
     global state
     if state == 0:
+        print("arming")
         state = 1
         for output in outputs:
             output.on_arm()
     else:
+        print("disarming")
         state = 0
         for output in outputs:
             output.on_disarm()

@@ -1,4 +1,3 @@
-import homesecurity
 import homesecurity as hs
 import rpi_gpio as GPIO
 
