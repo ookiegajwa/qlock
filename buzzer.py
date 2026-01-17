@@ -9,7 +9,7 @@ class Buzzer(homesecurity.SimpleOutput):
 
     def on_arm(self):
         GPIO.output(self.pin, GPIO.HIGH)
-        time.sleep(0.5)
+        time.sleep(0.2)
         GPIO.output(self.pin, GPIO.LOW)
 
     def on_disarm(self):
