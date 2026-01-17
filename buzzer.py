@@ -27,7 +27,8 @@ class Buzzer(homesecurity.SimpleOutput):
         GPIO.output(self.pin, GPIO.HIGH)
 
     def on_trip(self, sensor):
-        GPIO.output(self.pin, GPIO.HIGH)
-        time.sleep(0.01)
-        if homesecurity.state != 2:
-            GPIO.output(self.pin, GPIO.LOW)
+        if sensor.chime:
+            GPIO.output(self.pin, GPIO.HIGH)
+            time.sleep(0.01)
+            if homesecurity.state != 2:
+                GPIO.output(self.pin, GPIO.LOW)

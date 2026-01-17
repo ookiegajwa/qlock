@@ -2,7 +2,7 @@ import homesecurity as hs
 import rpi_gpio as GPIO
 
 BUTTON_PIN = 23
-my_sensor = hs.Sensor(zone=1)
+my_sensor = hs.Sensor(1, True)
 
 def setup():
     hs.sensors.add(my_sensor)

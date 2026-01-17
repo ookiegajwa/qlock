@@ -8,9 +8,10 @@ outputs = set()
 
 # Classes for input/output events
 class Sensor:
-    def __init__(self, zone: int):
+    def __init__(self, zone: int, chime: bool):
         self.zone = zone
         self.tripped = False
+        self.chime = chime
 
 
 class AccessControl:

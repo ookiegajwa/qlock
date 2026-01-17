@@ -2,7 +2,7 @@ import homesecurity as hs
 import rpi_gpio as GPIO
 
 MOTION_PIN = 18
-my_sensor = hs.Sensor(zone=2)
+my_sensor = hs.Sensor(2, False)
 
 def setup():
     hs.sensors.add(my_sensor)
