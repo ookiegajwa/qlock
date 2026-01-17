@@ -1,7 +1,8 @@
 import time
-import homesecurity, lcd, status_led
+import homesecurity, lcd, button, status_led
 
 lcd.lcd_init()
+button.setup()
 
 while True:
     lcd.update_status()
