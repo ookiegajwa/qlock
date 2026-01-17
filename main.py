@@ -8,4 +8,5 @@ homesecurity.outputs.append(status_led)
 
 while True:
     lcd.update_status()
+    status_led.update()
     time.sleep(1)
