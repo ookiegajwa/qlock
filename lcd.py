@@ -78,12 +78,13 @@ async def marquee_smooth(message, line, delay=0.3, cycles=3):
 
 # -- Main events --
 
-tripped_sensors = []
 line1 = ""
 line2 = ""
 scroll_offset = 0
 scroll_current = ""
 scroll_old = ""
+updating = False
+request = False
 
 def on_arm():
     update_status()
@@ -95,15 +96,22 @@ def on_alarm():
     update_status()
 
 def on_trip(sensor: homesecurity.Sensor):
-    tripped_sensors.append(sensor)
     update_status()
 
 def on_clear(sensor: homesecurity.Sensor):
-    tripped_sensors.remove(sensor)
     update_status()
 
 def update_status():
-    global line1, line2, scroll_offset, scroll_current, scroll_old
+    global line1, line2, scroll_offset, scroll_current, scroll_old, updating, request
+    if updating:
+        request = True
+        return
+    updating = True
+    tripped_sensors = []
+    for sensor in homesecurity.sensors:
+        if sensor.tripped:
+            tripped_sensors.append(sensor)
+
     if homesecurity.state == 0:
         if len(tripped_sensors) == 0:
             line1 = "Ready"
@@ -112,7 +120,7 @@ def update_status():
             line1 = "Not ready"
             line2 = "Fault: "
             for sensor in tripped_sensors:
-                line2 += sensor.zone + "; "
+                line2 += str(sensor.zone) + "; "
     elif homesecurity.state == 1:
         line1 = "Armed"
         line2 = "Secure"
@@ -120,7 +128,7 @@ def update_status():
         line1 = "ALARM"
         line2 = "In: "
         for sensor in homesecurity.alarm:
-            line2 += sensor.zone + "; "
+            line2 += str(sensor.zone) + "; "
 
     lcd_string(line1, LCD_LINE_1)
 
@@ -134,3 +142,8 @@ def update_status():
     else:
         lcd_string(scroll_current, LCD_LINE_2)
         scroll_current = scroll_current[1:] + scroll_current[0]
+
+    updating = False
+    if request:
+        request = False
+        update_status()

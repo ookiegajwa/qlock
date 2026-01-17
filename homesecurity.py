@@ -28,6 +28,12 @@ class SimpleOutput:
     def on_alarm(self):
         pass
 
+    def on_trip(self):
+        pass
+
+    def on_clear(self):
+        pass
+
 def trip(sensor: Sensor):
     """Callback called when a sensor trips"""
     global state
@@ -38,10 +44,14 @@ def trip(sensor: Sensor):
     if state != 0:
         alarm.append(sensor)
     sensor.tripped = True
+    for output in outputs:
+        output.on_trip(sensor)
 
 def clear(sensor: Sensor):
     """Callback called when a sensor clears"""
     sensor.tripped = False
+    for output in outputs:
+        output.on_clear(sensor)
 
 
 def toggle_arm(source: AccessControl):
