@@ -1,8 +1,8 @@
 import time
 import homesecurity, lcd, button, status_led, arm_toggle, buzzer, motion, lock
 
-led = status_led.StatusLED(13, 19, 26)
-back_door = lock.DoorLock(12)
+led = status_led.StatusLED(5, 6, 26)
+back_door = lock.DoorLock(13)
 
 lcd.lcd_init()
 button.setup()
