@@ -1,4 +1,8 @@
+# QLock
+
 ![QLock logo](/img/qlock.webp)
+
+QLock is a customizable and extensible home security system built on QNX and Python. This proof-of-concept is set up by `main.py` and run on a QNX Raspberry Pi as root with `python3 main.py`.
 
 ## Inspiration
 
