@@ -1,3 +1,5 @@
+![QLock logo](/img/qlock.webp)
+
 ## Inspiration
 
 We always found it impressive how QNX powers so many important computers in our lives, from medical equipment, to cars, to trains. We brought it upon ourselves to bring the the power of a resilient and modular Realtime OS like QNX into the home security landscape, so we built QLock.
