@@ -1,0 +1,188 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <sys/devctl.h>
+#include <time.h>
+
+#include <camera/camera_api.h>
+#include <sys/neutrino.h>
+
+#define GPIO_DEVICE      "/dev/gpio"
+#define MOTION_GPIO_PIN  18      
+#define GPIO_POLL_US     100000  
+
+#ifndef DCMD_GPIO_READ
+#define DCMD_GPIO_READ   __DIOTF(_DCMD_MISC, 1, gpio_cmd_t)
+#endif
+
+typedef struct {
+    uint32_t pin;
+    uint32_t value;
+} gpio_cmd_t;
+
+typedef struct {
+    bool     mPreviewActive;
+    uint64_t frameCnt;
+    camera_preview_params_t mPreviewParams;
+
+    int      gpio_fd;
+    uint32_t motion_pin;
+    volatile int motion_detected;
+
+    pthread_t gpio_thread;
+} externalCameraContext_t;
+
+static pthread_once_t cameraLibInit = PTHREAD_ONCE_INIT;
+
+static void initCameraLibrary(void)
+{
+    camera_initialize(NULL);
+}
+
+static int read_motion_gpio(int fd, uint32_t pin)
+{
+    gpio_cmd_t cmd;
+    cmd.pin = pin;
+    cmd.value = 0;
+
+    if (devctl(fd, DCMD_GPIO_READ, &cmd, sizeof(cmd), NULL) != EOK) {
+        return 0;
+    }
+
+    return (cmd.value != 0);
+}
+
+static void* gpio_motion_thread(void* arg)
+{
+    externalCameraContext_t* ctx = (externalCameraContext_t*)arg;
+
+    while (1) {
+        ctx->motion_detected = read_motion_gpio(ctx->gpio_fd,
+                                                ctx->motion_pin);
+        usleep(GPIO_POLL_US);
+    }
+
+    return NULL;
+}
+
+static int start_preview(void* handle,
+                         camera_preview_params_t* params,
+                         camera_buffer_list_t* buflist)
+{
+    externalCameraContext_t* ctx = (externalCameraContext_t*)handle;
+
+    if (!ctx || !params) {
+        return EINVAL;
+    }
+
+    if (ctx->mPreviewActive) {
+        return CAMERA_EALREADY;
+    }
+
+    ctx->mPreviewActive = true;
+    ctx->frameCnt = 0;
+    memcpy(&ctx->mPreviewParams, params,
+           sizeof(camera_preview_params_t));
+
+    return EOK;
+}
+
+static int intruder_detected(void* handle,
+                             void* bufferIn,
+                             camera_preview_frame_flags_t* flags,
+                             void** bufferOut,
+                             int64_t* timestamp,
+                             void* metaOut,
+                             uint64_t* metaSize)
+{
+    externalCameraContext_t* ctx = (externalCameraContext_t*)handle;
+    uint64_t timeStart, timeEnd;
+    int64_t timeDiff, framePeriod;
+
+    if (!ctx || !bufferIn || !flags) {
+        return EINVAL;
+    }
+
+    ClockTime(CLOCK_MONOTONIC, NULL, &timeStart);
+
+    flags->freeInputBuffer = true;
+
+    if (!ctx->motion_detected) {
+        flags->captured = false;
+        return EOK;
+    }
+
+    flags->captured = true;
+    *metaSize = 0;
+    ctx->frameCnt++;
+
+    if (bufferOut) {
+        flags->freeInputBuffer = false;
+        *bufferOut = bufferIn;
+    }
+
+    ClockTime(CLOCK_MONOTONIC, NULL, &timeEnd);
+
+    timeDiff = (timeEnd - timeStart) / 1000;
+    framePeriod = 1000000 /
+        (ctx->mPreviewParams.framerate_q16 >> 16);
+
+    if (timeDiff < framePeriod) {
+        usleep(framePeriod - timeDiff);
+    }
+
+    if (timestamp) {
+        *timestamp = time(NULL);
+    }
+
+    return EOK;
+}
+
+static int stop_preview(void* handle)
+{
+    externalCameraContext_t* ctx = (externalCameraContext_t*)handle;
+
+    if (!ctx) {
+        return EINVAL;
+    }
+
+    ctx->mPreviewActive = false;
+
+    if (ctx->gpio_fd >= 0) {
+        close(ctx->gpio_fd);
+        ctx->gpio_fd = -1;
+    }
+
+    return EOK;
+}
+
+static void* open_external_camera(uint32_t input)
+{
+    externalCameraContext_t* ctx;
+
+    pthread_once(&cameraLibInit, initCameraLibrary);
+
+    ctx = calloc(1, sizeof(externalCameraContext_t));
+    if (!ctx) {
+        return NULL;
+    }
+
+    ctx->motion_pin = MOTION_GPIO_PIN;
+    ctx->gpio_fd = open(GPIO_DEVICE, O_RDONLY);
+    ctx->motion_detected = 0;
+
+    if (ctx->gpio_fd >= 0) {
+        pthread_create(&ctx->gpio_thread,
+                       NULL,
+                       gpio_motion_thread,
+                       ctx);
+    }
+
+    return ctx;
+}
